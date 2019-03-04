@@ -13,27 +13,17 @@ namespace NLApiSamples
         static void Main(string[] args)
         {
             // create instance of NLService
-            NLService svc = new NLService();
-            bool connected = false;
-
-            try
+            using (NLService svc = new NLService())
             {
-                // connect to NL service on local machine
-                svc.Connect();
-                connected = true;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Connect exception: {0}", e.Message);
-                return;
-            }
-
-            if (connected)
-            {
-                // print all filters (for fun)
-                foreach (var f in svc.Filters)
+                try
                 {
-                    Console.WriteLine(f.Name);
+                    // connect to NL service on local machine
+                    svc.Connect();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Connect exception: {0}", e.Message);
+                    return;
                 }
 
                 // register event handler - it is called every time when there are any Blocker requests
@@ -48,9 +38,6 @@ namespace NLApiSamples
                         r.RemoteAddress, r.RemotePort, r.LocalAddress, r.LocalPort, r.ApplicationPath);
                     }
                 });
-
-                svc.Close();
-                svc.Dispose();
 
                 Console.ReadKey();
             }

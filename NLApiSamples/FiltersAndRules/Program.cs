@@ -13,23 +13,19 @@ namespace FiltersAndRules
         static void Main(string[] args)
         {
             // create instance of NLService
-            NLService svc = new NLService();
-            bool connected = false;
+            using (NLService svc = new NLService())
+            { 
+                try
+                {
+                    // connect to NL service on local machine
+                    svc.Connect();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Connect exception: {0}", e.Message);
+                    return;
+                }
 
-            try
-            {
-                // connect to NL service on local machine
-                svc.Connect();
-                connected = true;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Connect exception: {0}", e.Message);
-                return;
-            }
-
-            if (connected)
-            {
                 Filter fltWhole;
 
                 if (null == (fltWhole = svc.Filters.Find(x => x.Name == "Test-WholeMachineExceptSystemServices")))
@@ -61,7 +57,7 @@ namespace FiltersAndRules
                     limWhole = new LimitRule(RuleDir.In, 200000); // create limit rule (size in Bytes per second)
                     limWhole.IsEnabled = true;
 
-                    // create Start/Stop condition - limit is activated every day at 12PM and deactivated at 18PM
+                    // create Start/Stop conditions - limit is activated every day at 12PM and deactivated at 18PM
                     TimeCondition cndStartLimitWhole = new TimeCondition();
                     cndStartLimitWhole.Action = RuleConditionAction.Start;
                     cndStartLimitWhole.TimeConditionType = TimeConditionType.EveryDay;
@@ -93,13 +89,12 @@ namespace FiltersAndRules
                 Console.WriteLine("Press ENTER to delete the filter, delete the rule and Exit.");
                 Console.ReadLine();
 
+                // remove rules
                 foreach (var r in ruleWholeList)
                     svc.RemoveRule(r);
 
+                // remove filter
                 svc.RemoveFilter(fltWhole);
-
-                svc.Close();
-                svc.Dispose();
             }
 
         }
